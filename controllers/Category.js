@@ -46,3 +46,51 @@ exports.showAllCategories=async (req,res)=>{
         })
     }
 }
+
+// category page details
+exports.categoryPageDetails=async (req,res)=>{
+    try{
+        // get category Id
+        const {categoryId}=req.body;
+        // get course for sepcified categoryId
+        const selectedCategory=await Category.findById(categoryId)
+        .populate("courses")
+        .exec();
+
+        // validation
+        if(!selectedCategory){
+            return res.status(404).json({
+                success:false,
+                message:"Category not found"
+            })
+        }
+        // get course for diff categories
+        const differentCategories=await Category.find({
+            _id:{$ne:categoryId},
+        })
+        .populate("courses")
+        .exec();
+        // get top selling courses
+        const topSellingCourses=await Course.find({
+            studentsEnrolled:{$gt:50},
+        })
+        .sort({studentsEnrolled:-1})
+        .limit(10)
+        .populate("instructor");
+        // return response
+        return res.status(200).json({
+            success:true,
+            data:{
+                selectedCategory,
+                differentCategories,
+                topSellingCourses
+            }
+        })
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({
+            success:false,
+            message:error.message,
+        })
+    }
+}

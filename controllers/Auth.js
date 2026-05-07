@@ -110,6 +110,10 @@ exports.signUp = async (req,res) => {
         // Hash password
         const hashedPassword=await bcrypt.hash(password,10);
 
+        // Create the user
+		let approved = "";
+		approved === "Instructor" ? (approved = false) : (approved = true);
+
         // create entry in DB
         const profileDetails=await Profile.create({
             gender:null,
@@ -124,6 +128,7 @@ exports.signUp = async (req,res) => {
             email,
             password:hashedPassword,
             accountType,
+			approved: approved,
             additionalDetails:profileDetails._id,
             image:`https://api.dicebear.com/9.x/initials/svg?seed=${firstName} ${lastName}`
         })
@@ -170,7 +175,7 @@ exports.login = async (req,res)=>{
         }
         if(await bcrypt.compare(password,user.password)){
             const token= jwt.sign(payload,process.env.JWT_SECERT,{
-                expiresIn:"2h"
+                expiresIn:"24h"
             })
             user.token=token;
             user.password=undefined;
